@@ -29,7 +29,7 @@ vector<int> getList(int N) {
 }
 
 int main() {
-//    freopen("./txts/1009.txt", "rt", stdin);
+//    freopen("./input_data/2504.txt", "rt", stdin);
     vector<int> list = getList(10000);
 
     for (int i: list) {
