@@ -45,12 +45,39 @@ void printResult() {
 }
 
 void rotateCube(char cmd, bool dir){
-    // U +
-    char temp[3];
     char t;
-    for (int i = 0; i < 3; ++i) {
-        t =
+
+    switch (cmd) {
+        case 'U':
+            if (dir) { // U +
+                for (int i = 0; i < 3; ++i) {
+                    t = cube[2][0][i];
+                    cube[2][0][i] = cube[5][0][i];
+                    cube[5][0][i] = cube[3][0][i];
+                    cube[3][0][i] = cube[4][0][i];
+                    cube[4][0][i] = t;
+                }
+            } else { // U-
+                for (int i = 0; i < 3; ++i) {
+                    t = cube[2][0][i];
+                    cube[2][0][i] = cube[4][0][i];
+                    cube[4][0][i] = cube[3][0][i];
+                    cube[3][0][i] = cube[5][0][i];
+                    cube[5][0][i] = t;
+                }
+            }
+            break;
+
+        case 'D':
+            break;
+        case 'F':
+            break;
+        default:
+            break;
     }
+
+
+
 
 }
 
