@@ -118,7 +118,6 @@ string getResult(char T[], const char A[]) {
 int main() {
 //    freopen("../input_data/3111.txt", "rt", stdin);
     char T[300001]{0}, A[26]{0};
-//    list<char> TList;
     cin >> A >> T;
 
 //    int tl = 0;
