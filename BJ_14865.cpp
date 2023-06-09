@@ -17,6 +17,7 @@ int main() {
     cin >> N;
 
 
+
     queue<pair<int, int>> queue;
     int r, c, rp, cp, mc1, mc2;
     int n = N;
