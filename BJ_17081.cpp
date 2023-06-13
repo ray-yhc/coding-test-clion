@@ -74,12 +74,14 @@ public:
 };
 
 unordered_map<int, Monster *> monsterMap;
-unordered_map<int, Object *> boxMap;
+unordered_map<int, Object *> objectMap;
 
 class Character {
 public :
     int r;
     int c;
+    int init_r;
+    int init_c;
 
     int lv = 1;
     int hp = 20;
@@ -91,10 +93,36 @@ public :
 
     int sword = 0;
     int shild = 0;
-    bool item[7];
+    bool item[7]{false};
     int item_num = 0;
 
     Result *result;
+
+    void init(int ir, int ic) {
+        r = init_r = ir;
+        c = init_c = ic;
+
+        for (int i = 0; i < 7; ++i) {
+            item[i] = false;
+        }
+        result = nullptr;
+    }
+
+    void revive(){
+//        assert(item[1]);
+        hp = hp_max;
+
+        r = init_r;
+        c = init_c;
+        // 전투 중이던 몬스터가 있다면 해당 몬스터의 체력도 최대치로 회복된다
+
+        // 소멸한 뒤에 다시 이 장신구를 얻는다면 또 착용한다.
+        item[1] = false;
+        item_num--;
+
+        result = nullptr;
+    }
+
 
     void checkLevelUp() {
         if (exp < exp_max) return;
@@ -110,9 +138,6 @@ public :
     }
 
     bool fightMon(int rr, int cc) {
-        printf("fight : (%d,%d) \n",rr,cc);
-
-        // todo : 공격판정 수정하기
         // 항상 주인공 캐릭터가 선공을 하며,
         // 한 번씩 번갈아가며 공격하여 각자 max(1, 내 공격력 - 상대의 방어력) 만큼의 데미지를 서로에게 한 번씩 입힌다.
         // 한 쪽의 체력이 0 이하가 될 경우 전투는 즉시 종료된다.
@@ -120,6 +145,7 @@ public :
         Monster *mon = monsterMap[rr * 100 + cc];
         int myAtt = att + sword;
         int myDef = def + shild;
+        int monHp = mon->hp;
 
         int demageToMe = mon->offence - myDef;
         if (demageToMe < 1)demageToMe = 1;
@@ -134,8 +160,8 @@ public :
                     // Hunter(HU) : 보스 몬스터와 전투에 돌입하는 순간 체력을 최대치까지 회복하고, 보스 몬스터의 첫 공격에 0의 데미지를 입는다.
                     hp = hp_max;
                     // hp -= 0
-                    mon->hp -= demageToYou;
-                    if (mon->hp <= 0) {
+                    monHp -= demageToYou;
+                    if (monHp <= 0) {
                         win = true;
                         break;
                     }
@@ -145,13 +171,13 @@ public :
                     if (item[4]) {
                         demageTemp = myAtt * 3 - mon->defence;
                         if (demageTemp < 1) demageTemp = 1;
-                        mon->hp -= demageTemp;
+                        monHp -= demageTemp;
                     } else {
                         demageTemp = myAtt * 2 - mon->defence;
                         if (demageTemp < 1) demageTemp = 1;
-                        mon->hp -= demageTemp;
+                        monHp -= demageTemp;
                     }
-                    if (mon->hp <= 0) {
+                    if (monHp <= 0) {
                         win = true;
                         break;
                     }
@@ -163,35 +189,27 @@ public :
                 }
                 i++;
             } else { // other attacks
-                int myturns;
-                if (demageToMe != 0) {
-                    myturns = hp / demageToMe;
-                    myturns = (hp % demageToMe == 0) ? myturns : myturns + 1;
-                } else
-                    myturns = 1e9;
+                int myturns = hp / demageToMe;
+                myturns = (hp % demageToMe == 0) ? myturns : myturns + 1;
 
 
-                int yuturns;
-                if (demageToYou != 0) {
-                    yuturns = mon->hp / demageToYou;
-                    yuturns = (mon->hp % demageToYou == 0)? yuturns : yuturns+1;
-                } else
-                    yuturns = 1e9;
+                int yuturns = monHp / demageToYou;
+                yuturns = (monHp % demageToYou == 0)? yuturns : yuturns+1;
 
                 if (myturns >= yuturns) {
                     win = true;
                     int turns = yuturns;
-                    mon->hp = mon->hp - demageToYou * turns;
+                    monHp = monHp - demageToYou * turns;
                     turns--;
                     hp = hp - demageToMe * turns;
-                    assert(hp >0);
+//                    assert(hp >0);
                 } else {
                     win = false;
                     int turns = myturns;
-                    mon->hp = mon->hp - demageToYou * turns;
+                    monHp = monHp - demageToYou * turns;
                     hp = hp - demageToMe * turns;
-                    if (!(hp < 0))
-                        true;
+//                    if (!(hp < 0))
+//                        true;
                 }
                 break;
             }
@@ -201,6 +219,7 @@ public :
             if ( mon->isBoss)
                 result = new Result(true, 0, "");
             map[rr][cc] = '.';
+
             // HP Regeneration(HR) : 전투에서 승리할 때마다 체력을 3 회복한다. 체력은 최대 체력 수치까지만 회복된다.
             if (item[0]) hp = (hp + 3 > hp_max) ? hp_max : hp + 3;
 
@@ -217,8 +236,7 @@ public :
     }
 
     void getItem(int rr, int cc) {
-        printf("item : (%d,%d) \n",rr,cc);
-        Object *ob = boxMap[rr * 100 + cc];
+        Object *ob = objectMap[rr * 100 + cc];
         map[rr][cc] = '.';
         if (ob->type == 'W') {// 무기
             sword = ((AttackObject *) ob)->value;
@@ -235,7 +253,6 @@ public :
     void spikeTrap() {
         int dem = 5;
         if (item[4]) dem = 1;
-        printf("trapped : (%d,%d), %d->%d \n",r,c,hp,hp-dem);
 
         hp -= dem;
         if (hp <= 0) {
@@ -246,7 +263,7 @@ public :
 
     bool move(char dir) {
         int dc[4]{1, 0, -1, 0}, dr[4]{0, -1, 0, 1};
-        int di;
+        int di=0;
         switch (dir) {
             case 'R':
                 di = 0;
@@ -278,11 +295,11 @@ public :
             c = nc;
         }
             // 몬스터
-        else if (map[nr][nc] == '&') {
+        else if (map[nr][nc] == '&' || map[nr][nc] == 'M') {
             bool isBoss = fightMon(nr, nc);
             r = nr;
             c = nc;
-            if (isBoss) {
+            if (isBoss && hp > 0) {
                 checkLevelUp();
                 return false;
             }
@@ -298,6 +315,10 @@ public :
         checkLevelUp();
 
         if (hp <= 0) {
+            if (item[1]) {
+                revive();
+                return true;
+            }
             hp = 0;
             return false;
         } else return true;
@@ -316,11 +337,12 @@ public :
         }
     }
     void printResult(int turns) {
-        if (result == nullptr || result->isAlive)
-            map[r][c] = '@';
         for (int i = 1; i <= N; ++i) {
             for (int j = 1; j <= M; ++j) {
-                printf("%c", map[i][j]);
+                if (i==r&&j==c&&(result == nullptr || result->isAlive))
+                    printf("@");
+                else
+                    printf("%c", map[i][j]);
             }
             printf("\n");
         }
@@ -332,7 +354,7 @@ public :
         else if (result->isAlive)
             res = "YOU WIN!";
         else if (result->type == 1)
-            res = "YOU HAVE BEEN KILLED BY " + result->from;
+            res = "YOU HAVE BEEN KILLED BY " + result->from +"..";
         else if (result->type == 2)
             res = "YOU HAVE BEEN KILLED BY SPIKE TRAP..";
 
@@ -342,7 +364,7 @@ public :
                "ATT : %d+%d\n"
                "DEF : %d+%d\n"
                "EXP : %d/%d\n"
-               "%s\n",
+               "%s",
                turns, lv, hp, hp_max, att, sword, def, shild, exp, exp_max, res.c_str());
     }
 };
@@ -357,20 +379,19 @@ public :
 
 void playGame(string steps, int initR, int initC) {
     Character hero;
-    hero.r = initR;
-    hero.c = initC;
+    hero.init(initR, initC);
 
-    printf("======= start ======= \n");
+//    printf("======= start ======= \n");
     for (int i = 0; i < steps.size(); ++i) {
         bool isContinue = hero.move(steps.at(i));
         if (!isContinue) {
-            printf("======= finish ======= \n");
+//            printf("======= finish ======= \n");
             hero.printResult(i + 1);
             return;
         }
-        hero.printMap();
+//        hero.printMap();
     }
-    printf("======= finish ======= \n");
+//    printf("======= finish ======= \n");
     hero.printResult(steps.size());
     return;
 }
@@ -404,7 +425,6 @@ int main() {
         cin >> r >> c >> str >> w >> a >> h >> e;
         Monster *mon = new Monster(str, (map[r][c] == 'M'), w, a, h, e);
         monsterMap.emplace(r * 100 + c, mon);
-        map[r][c] = '&';
     }
     for (int i = 0; i < L; ++i) {
         cin >> r >> c >> ch;
@@ -419,13 +439,11 @@ int main() {
             cin >> str;
             ob = new EffectObject(ch, str);
         }
-        boxMap.emplace(r * 100 + c, ob);
+        objectMap.emplace(r * 100 + c, ob);
     }
 
 
     playGame(move, initR, initC);
-
-
-//    cout << highest << " " << lowest << endl;
     return 0;
 }
+
