@@ -1,8 +1,5 @@
 #include <iostream>
-#include <string>
-#include <stack>
-#include <queue>
-#include <unordered_map>
+#include <vector>
 
 using namespace std;
 
@@ -29,29 +26,24 @@ void printList(bool list[100001]) {
 void spread(const bool from[100001], bool to[100001]) {
     // initial에 있는 member들을 result에 memcpy
     for (int i = 1; i <= N; ++i) {
-        if (from[i]) {
-            to[i] = true;
-        }
+        to[i] = from[i];
     }
 
-
     for (auto mbs: meets) {
-//        printMeeting(mbs);
         // 한명이라도 initial에 있으면
-        bool isInitial = false;
+        bool isInfected = false;
         for (auto mb: mbs) {
             if (to[mb]) {
-                isInitial = true;
+                isInfected = true;
                 break;
             }
         }
 
         // result의 모든 member true
-        if (isInitial) {
+        if (isInfected) {
             for (auto mb: mbs) {
                 to[mb] = true;
             }
-//            printList(to);
         }
     }
 }
