@@ -11,11 +11,11 @@ int N, M, D;
 stack<pair<int, int>> checkpoint[31]; // checkpoint[col] == {row, col}
 set<int> obstacles[31];
 
-int totalIter = 0, stackCRUD = 0;
-void printStat(){
-    cout << "totalIter : " << totalIter << endl;
-    cout << "stackCRUD : " << stackCRUD << endl;
-}
+//int totalIter = 0, stackCRUD = 0;
+//void printStat(){
+//    cout << "totalIter : " << totalIter << endl;
+//    cout << "stackCRUD : " << stackCRUD << endl;
+//}
 
 
 bool isEmpty(int r, int c) {
@@ -24,7 +24,6 @@ bool isEmpty(int r, int c) {
 }
 
 int stNUm = 0;
-
 void addStone(int r, int c) {
 //    assert(!(r <= 0 || r > N || c <= 0 || c > M) && gameMap[r][c] == '.');
 //    gameMap[r][c] = '0' + (stNUm++);
@@ -63,8 +62,8 @@ int main() {
             int nr = checkpoint[dropColumn].top().first;
             int nc = checkpoint[dropColumn].top().second;
             if (gameMap[nr][nc] != '.') {
-                stackCRUD++; //todo
-                totalIter++; //todo
+//                stackCRUD++; //todo
+//                totalIter++; //todo
                 checkpoint[dropColumn].pop();
             }
             else break;
@@ -81,7 +80,7 @@ int main() {
         }
 
         while(true) {
-            totalIter++; //todo
+//            totalIter++; //todo
             // r+1이 벽이거나 out인 경우,
             int nr = r + 1, nc = c;
             if (nr <= 0 || nr > N || nc <= 0 || nc > M
@@ -95,8 +94,9 @@ int main() {
             // 좌측 (r,c-1) (r+1, c-1) 진입가능
             if (isEmpty(r, c - 1) && isEmpty(r + 1, c - 1)) {
                 // add checkpoint
+                obstacles[c].erase(r+1);
                 checkpoint[dropColumn].emplace(r, c);
-                stackCRUD++; //todo
+//                stackCRUD++; //todo
 
                 c = c - 1;
                 r = (obstacles[c].upper_bound(r+1) == obstacles[c].end())?
@@ -106,8 +106,9 @@ int main() {
             // 우측 (r,c+1) (r+1, c+1) 진입가능
             else if (isEmpty(r, c + 1) && isEmpty(r + 1, c + 1)) {
                 // add checkpoint
+                obstacles[c].erase(r+1);
                 checkpoint[dropColumn].emplace(r, c);
-                stackCRUD++; //todo
+//                stackCRUD++; //todo
 
                 c = c + 1;
                 r = (obstacles[c].upper_bound(r+1) == obstacles[c].end())?
@@ -128,7 +129,7 @@ int main() {
         cout << endl;
     }
 
-    printStat(); //todo
+//    printStat(); //todo
 
     return 0;
 }
