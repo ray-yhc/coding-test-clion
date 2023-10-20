@@ -1,5 +1,8 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
+
+using namespace std;
 
 constexpr size_t n = 5;
 
@@ -49,6 +52,18 @@ int query(int l, int r){
 }
 
 int main() {
+
+    vector<int> v = {1, 2, 3, 4, 5};
+    auto it = v.begin();
+    for (int k = 0; k < 5; ++k) {
+        cout << *it << endl;
+        it=v.erase(it);
+//        it++;
+    }
+    v = {1, 2, 3, 4, 5};
+    std::remove(v.begin(), v.end(), 3);
+    v.erase(remove(v.begin(),v.end(),4),v.end());
+    v.erase(v.begin() + 2, v.end());
 
     return 0;
 }
