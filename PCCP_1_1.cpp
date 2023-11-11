@@ -14,7 +14,7 @@ int solution(vector<int> bandage, int health, vector<vector<int>> attacks) {
         int healTime = attackTime - ts - 1;
         hp += healTime * bandage[1];
         if (healTime >= bandage[0]) hp += bandage[2] * (healTime / bandage[0]);
-        if (hp > health) hp = health;
+        if ( hp > health) hp = health;
 
         hp -= attack;
         if (hp<=0) return -1;
